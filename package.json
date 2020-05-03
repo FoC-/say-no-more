@@ -1,0 +1,24 @@
+{
+  "name": "say-no-more",
+  "version": "1.0.0",
+  "description": "I want something similar to React. Say no more.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/FoC-/say-no-more.git"
+  },
+  "keywords": [
+    "react",
+    "vanilla",
+    "double arrow"
+  ],
+  "author": "FoC-",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/FoC-/say-no-more/issues"
+  },
+  "homepage": "https://github.com/FoC-/say-no-more#readme"
+}
