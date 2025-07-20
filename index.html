@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Tests</title>
+    <meta charset="UTF-8" />
+    <link
+      href="data:image/x-icon;base64,AAABAAEAEBACAAAAAACwAAAAFgAAACgAAAAQAAAAIAAAAAEAAQAAAAAAQAAAAAAAAAAAAAAAAgAAAAAAAAAAAAAACAgHAP//AAB//wAAP/8AAAAAAAAAAAAAAAAAAAP/AAAB/wAAAP8AAAAAAAAAAAAAAAAAAAAPAAAABwAAAAMAAAAAAAAAAAAAgAAAAMAAAAD//wAA//8AAP//AAD8AAAA/gAAAP8AAAD//wAA//8AAP//AAD/8AAA//gAAP/8AAD//wAA"
+      rel="icon"
+      type="image/x-icon"
+    />
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+      }
+      body {
+        background-color: #fae3e8;
+        line-height: 1.5;
+      }
+      #container {
+        margin: 0 auto;
+        padding: 20px;
+        width: fit-content;
+        background-color: #e3faf5;
+        box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
+      }
+
+      h1 {
+        text-align: center;
+      }
+
+      .header {
+        position: sticky;
+        top: 0;
+        padding-bottom: 10px;
+        background-color: #e3faf5;
+      }
+
+      .controls {
+        display: flex;
+        justify-content: space-between;
+        user-select: none;
+        width: 400px;
+        padding-top: 10px;
+      }
+
+      .messages {
+        display: flex;
+        flex-direction: column;
+      }
+
+      .messages .suite {
+        margin-top: 10px;
+      }
+
+      .messages .suite .test {
+        display: flex;
+        border-bottom: 1px solid #ddd;
+      }
+
+      .messages .suite .test .button {
+        cursor: pointer;
+        user-select: none;
+      }
+
+      .messages div > span:nth-child(2) {
+        width: 500px;
+      }
+
+      .hidden {
+        display: none !important;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="container"></div>
+
+    <script type="module">
+      import suites from "./tests";
+      import { allAssertsHasExpectations } from "./tests/utils";
+      import { Scope } from "./src/scope";
+      import { tags } from "./src/tags";
+
+      const scope = new Scope();
+      const { state } = scope;
+      const { div, h1, h2, p, span, button, input, label } = tags(scope);
+
+      const searchParams = new URL(location.href).searchParams;
+      const onlyFailed = searchParams.has("only-failed");
+      const setUrl =
+        (flag) =>
+        ({ currentTarget: { checked } }) => {
+          if (checked) {
+            searchParams.set(flag, 1);
+          } else {
+            searchParams.delete(flag);
+          }
+          window.location.search = searchParams.toString();
+        };
+      const testsPassed = state(0);
+      const testsFailed = state(0);
+      const inProgress = state(true);
+      const messages = div({ class: "messages" });
+      const app = div(
+        div(
+          { class: "header" },
+          h1("Tests are ", () => (inProgress.value ? "running" : "completed")),
+          div(
+            { class: "controls" },
+            span(
+              input({ id: "only-failed", type: "checkbox", checked: onlyFailed, onchange: setUrl("only-failed") }),
+              label({ for: "only-failed" }, "Only failed")
+            )
+          ),
+          div({ class: "controls" }, span("✅", testsPassed, " tests passed"), span("❌", testsFailed, " tests failed"))
+        ),
+        messages
+      );
+      document.getElementById("container").append(app);
+
+      const runSuite = async (suiteDom, suite) => {
+        for (let [name, func] of Object.entries(suite)) {
+          const result = state("");
+          const run = async (attach) => {
+            const dom = div({ class: "hidden" });
+            document.body.append(dom);
+            try {
+              switch (result.value) {
+                case "✅":
+                  testsPassed.value--;
+                  break;
+                case "❌":
+                  testsFailed.value--;
+                  break;
+              }
+              result.value = "⏳";
+              if (attach) debugger;
+              await func(dom);
+              testsPassed.value++;
+              result.value = "✅";
+            } catch (e) {
+              testsFailed.value++;
+              result.value = "❌";
+              console.error(name + "\n", e);
+            } finally {
+              dom.remove();
+            }
+          };
+
+          suiteDom.append(
+            div(
+              { class: () => `test ${onlyFailed && result.value === "✅" ? "hidden" : ""}` },
+              span(result),
+              span(name.replace(/_/g, " ")),
+              span(
+                {
+                  class: "button",
+                  onclick: () => {
+                    console.clear();
+                    console.time(`${name} - execution time`);
+                    run(false);
+                    console.timeEnd(`${name} - execution time`);
+                  },
+                },
+                "🔄"
+              ),
+              span(
+                {
+                  class: "button",
+                  onclick: () => run(true),
+                },
+                "🪲"
+              )
+            )
+          );
+          await run(false);
+        }
+      };
+
+      const runs = [];
+      console.time("tests execution time");
+      for (const [name, suite] of Object.entries(suites)) {
+        const suiteDom = div({ class: "suite" }, h2(name.replace(/_/g, " ").replace("tests", "")));
+        messages.append(suiteDom);
+        runs.push(runSuite(suiteDom, suite));
+      }
+      await Promise.all(runs);
+      console.timeEnd("tests execution time");
+      console.log("all asserts has expectations: ", allAssertsHasExpectations());
+      inProgress.value = false;
+    </script>
+  </body>
+</html>
