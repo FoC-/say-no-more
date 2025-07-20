@@ -1,0 +1,22 @@
+{
+  "name": "say-no-more",
+  "version": "1.0.0",
+  "description": "Experiments with reactive UI",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "start": "vite",
+    "build": "vite build && tsc",
+    "preview": "vite preview",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "FoC-",
+  "license": "GPL-3.0-only",
+  "devDependencies": {
+    "terser": "^5.26.0",
+    "typescript": "^5.3.3",
+    "vite": "^5.0.11"
+  }
+}
+

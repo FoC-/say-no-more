@@ -1,0 +1,11 @@
+{
+  "configurations": [
+    {
+      "name": "Local",
+      "type": "chrome",
+      "request": "launch",
+      "url": "http://localhost:5173/",
+      "skipFiles": ["${workspaceFolder}/node_modules/**/*.js", "<node_internals>/**"]
+    }
+  ]
+}
